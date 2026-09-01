@@ -17,6 +17,15 @@ connectDB();
 app.use(express.json());
 app.use(auditMiddleware);
 
+// Ruta principal (Bienvenida)
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'API de Numerología activa y funcionando correctamente',
+    version: '1.0.0',
+    status: 'online'
+  });
+});
+
 // Rutas API
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/numerology', numerologyRoutes);
