@@ -408,7 +408,6 @@
         });
 
         // 3. Generación Real de Lecturas en MongoDB (Vía Gemini AI)
-        // AQUÍ VA EL CAMBIO: Primero calcula el perfil y luego genera la lectura
         document.getElementById('form-3').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -458,7 +457,7 @@
             }
         });
 
-        // 4. Test de Compatibilidad Real
+        // 4. Test de Compatibilidad Real (Mejorado)
         document.getElementById('form-4').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!authToken) {
@@ -479,18 +478,32 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({ persona1, persona2 })
+                    body: JSON.stringify({ 
+                        persona1, 
+                        persona2,
+                        fecha1: persona1,
+                        fecha2: persona2,
+                        fecha_nacimiento_1: persona1,
+                        fecha_nacimiento_2: persona2
+                    })
                 });
 
-                const data = await res.json();
+                const rawText = await res.text();
+                let data;
+                try { 
+                    data = JSON.parse(rawText); 
+                } catch (err) { 
+                    data = rawText; 
+                }
 
                 if (res.ok) {
-                    resBox.innerText = JSON.stringify(data, null, 2);
+                    resBox.innerText = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
                 } else {
-                    resBox.innerText = `Error (${res.status}):\n` + JSON.stringify(data, null, 2);
+                    resBox.innerText = `Error (${res.status}):\n` + (typeof data === 'object' ? JSON.stringify(data, null, 2) : data);
                 }
             } catch (error) {
-                resBox.innerText = JSON.stringify({ error: 'Error al obtener datos de compatibilidad.' }, null, 2);
+                console.error('Error en compatibilidad:', error);
+                resBox.innerText = `Error de conexión/JS: ${error.message}`;
             }
         });
 
