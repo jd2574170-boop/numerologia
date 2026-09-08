@@ -16,9 +16,10 @@ connectDB();
 
 // Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // <-- AQUÍ VA LA LÍNEA
 app.use(auditMiddleware);
 
-// Servir la carpeta de archivos estáticos (index.html)
+// Servir la carpeta estática del frontend (index.html)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas API
