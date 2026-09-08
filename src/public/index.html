@@ -199,7 +199,7 @@
             border: 1px solid var(--border-glass);
             border-radius: 10px;
             padding: 12px;
-            max-height: 180px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
@@ -324,6 +324,9 @@
     </div>
 
     <script>
+        // Dirección remota de tu backend en Render
+        const API_URL = 'https://numerologia-qlf1.onrender.com';
+
         let authToken = localStorage.getItem('jwtToken') || '';
 
         function goToStep(step) {
@@ -349,7 +352,7 @@
             const password = document.getElementById('reg-password').value.trim();
 
             try {
-                const res = await fetch('/api/v1/auth/register', {
+                const res = await fetch(`${API_URL}/api/v1/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -371,7 +374,7 @@
                     alert('Error en el registro: ' + (data.mensaje || data.error || JSON.stringify(data)));
                 }
             } catch (error) {
-                alert('No se pudo conectar con el servidor backend.');
+                alert('No se pudo conectar con el servidor backend en Render.');
             }
         });
 
@@ -382,7 +385,7 @@
             const password = document.getElementById('login-password').value.trim();
 
             try {
-                const res = await fetch('/api/v1/auth/login', {
+                const res = await fetch(`${API_URL}/api/v1/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, correo: email, password })
@@ -408,6 +411,7 @@
         // 3. Generación Real de Lecturas en MongoDB (Vía Gemini AI)
         document.getElementById('form-3').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             if (!authToken) {
                 alert('Sesión no encontrada. Inicia sesión en el Paso 2.');
                 return;
@@ -415,22 +419,33 @@
 
             const tipo_lectura = document.getElementById('tipo-lectura').value;
             const resBox = document.getElementById('result-calc');
-            resBox.innerText = 'Consultando IA y escribiendo en MongoDB...';
+            
+            resBox.innerText = 'Consultando Gemini AI y escribiendo en MongoDB Atlas...\n(Si el servidor de Render estaba dormido, este proceso puede tardar unos segundos)';
 
             try {
-                const res = await fetch('/api/v1/readings/generate', {
+                const res = await fetch(`${API_URL}/api/v1/readings/generate`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({ tipo_lectura })
+                    body: JSON.stringify({ 
+                        tipo_lectura: tipo_lectura,
+                        tipoLectura: tipo_lectura 
+                    })
                 });
 
                 const data = await res.json();
-                resBox.innerText = JSON.stringify(data, null, 2);
+                console.log('Respuesta de Lecturas (Status', res.status, '):', data);
+
+                if (res.ok) {
+                    resBox.innerText = JSON.stringify(data, null, 2);
+                } else {
+                    resBox.innerText = `Error del Servidor (Código ${res.status}):\n` + JSON.stringify(data, null, 2);
+                }
             } catch (error) {
-                resBox.innerText = JSON.stringify({ error: 'Fallo al comunicarse con la API de Lecturas.' }, null, 2);
+                console.error('Error en fetch readings:', error);
+                resBox.innerText = 'Error al conectarse con el endpoint de lecturas. Revisa la consola F12.';
             }
         });
 
@@ -449,7 +464,7 @@
             resBox.innerText = 'Calculando afinidad...';
 
             try {
-                const res = await fetch('/api/v1/numerology/profile', {
+                const res = await fetch(`${API_URL}/api/v1/numerology/profile`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -459,7 +474,12 @@
                 });
 
                 const data = await res.json();
-                resBox.innerText = JSON.stringify(data, null, 2);
+
+                if (res.ok) {
+                    resBox.innerText = JSON.stringify(data, null, 2);
+                } else {
+                    resBox.innerText = `Error (${res.status}):\n` + JSON.stringify(data, null, 2);
+                }
             } catch (error) {
                 resBox.innerText = JSON.stringify({ error: 'Error al obtener datos de compatibilidad.' }, null, 2);
             }
