@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const connectDB = require('./config/db');
 const auditMiddleware = require('./middlewares/audit.middleware');
 
@@ -17,14 +18,8 @@ connectDB();
 app.use(express.json());
 app.use(auditMiddleware);
 
-// Ruta principal (Bienvenida)
-app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'API de Numerología activa y funcionando correctamente',
-    version: '1.0.0',
-    status: 'online'
-  });
-});
+// Servir la carpeta de archivos estáticos (index.html)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas API
 app.use('/api/v1/auth', authRoutes);
