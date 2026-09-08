@@ -238,6 +238,10 @@
                     <input type="email" id="reg-email" required placeholder="jose@ejemplo.com">
                 </div>
                 <div class="form-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" id="reg-birthdate" required>
+                </div>
+                <div class="form-group">
                     <label>Contraseña</label>
                     <input type="password" id="reg-password" required placeholder="••••••••">
                 </div>
@@ -340,41 +344,48 @@
         document.getElementById('form-1').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nombre = document.getElementById('reg-name').value.trim();
-            const correo = document.getElementById('reg-email').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const fecha_nacimiento = document.getElementById('reg-birthdate').value;
             const password = document.getElementById('reg-password').value.trim();
 
             try {
                 const res = await fetch('/api/v1/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre_completo: nombre, correo, password })
+                    body: JSON.stringify({ 
+                        nombre, 
+                        nombre_completo: nombre,
+                        email, 
+                        fecha_nacimiento, 
+                        password 
+                    })
                 });
 
                 const data = await res.json();
 
                 if (res.ok) {
-                    document.getElementById('login-email').value = correo;
+                    document.getElementById('login-email').value = email;
                     alert('¡Usuario guardado en MongoDB Atlas exitosamente!');
                     goToStep(2);
                 } else {
-                    alert('Error en el registro: ' + (data.mensaje || data.error || 'Datos inválidos'));
+                    alert('Error en el registro: ' + (data.mensaje || data.error || JSON.stringify(data)));
                 }
             } catch (error) {
-                alert('No se pudo conectar con el servidor backend en Render.');
+                alert('No se pudo conectar con el servidor backend.');
             }
         });
 
         // 2. Login Real (Obtención y persistencia de Token JWT)
         document.getElementById('form-2').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const correo = document.getElementById('login-email').value.trim();
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
 
             try {
                 const res = await fetch('/api/v1/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ correo, password })
+                    body: JSON.stringify({ email, correo: email, password })
                 });
 
                 const data = await res.json();
@@ -387,7 +398,7 @@
                     alert('¡Autenticación exitosa!');
                     goToStep(3);
                 } else {
-                    alert('Error al iniciar sesión: ' + (data.mensaje || data.error || 'Credenciales no encontradas en MongoDB'));
+                    alert('Error al iniciar sesión: ' + (data.mensaje || data.error || 'Credenciales no encontradas'));
                 }
             } catch (error) {
                 alert('Error al procesar la autenticación en el servidor.');
