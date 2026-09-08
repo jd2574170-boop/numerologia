@@ -324,7 +324,6 @@
     </div>
 
     <script>
-        // Dirección remota de tu backend en Render
         const API_URL = 'https://numerologia-qlf1.onrender.com';
 
         let authToken = localStorage.getItem('jwtToken') || '';
@@ -409,6 +408,7 @@
         });
 
         // 3. Generación Real de Lecturas en MongoDB (Vía Gemini AI)
+        // AQUÍ VA EL CAMBIO: Primero calcula el perfil y luego genera la lectura
         document.getElementById('form-3').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -420,9 +420,19 @@
             const tipo_lectura = document.getElementById('tipo-lectura').value;
             const resBox = document.getElementById('result-calc');
             
-            resBox.innerText = 'Consultando Gemini AI y escribiendo en MongoDB Atlas...\n(Si el servidor de Render estaba dormido, este proceso puede tardar unos segundos)';
+            resBox.innerText = 'Calculando perfil numerológico base y consultando a Gemini AI...';
 
             try {
+                // Paso previo: Asegurar que el perfil numerológico esté generado en la DB
+                await fetch(`${API_URL}/api/v1/numerology/profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                // Solicitar la lectura
                 const res = await fetch(`${API_URL}/api/v1/readings/generate`, {
                     method: 'POST',
                     headers: {
@@ -436,7 +446,6 @@
                 });
 
                 const data = await res.json();
-                console.log('Respuesta de Lecturas (Status', res.status, '):', data);
 
                 if (res.ok) {
                     resBox.innerText = JSON.stringify(data, null, 2);
@@ -445,7 +454,7 @@
                 }
             } catch (error) {
                 console.error('Error en fetch readings:', error);
-                resBox.innerText = 'Error al conectarse con el endpoint de lecturas. Revisa la consola F12.';
+                resBox.innerText = 'Error al conectarse con el servidor backend.';
             }
         });
 
